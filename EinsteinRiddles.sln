@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29609.76
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EinsteinRiddles", "EinsteinRiddles\EinsteinRiddles.csproj", "{18CA0AB9-FE88-4833-811B-F8C16AD8C2E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestsForEinsteinsRiddles", "TestsForEinsteinsRiddles\TestsForEinsteinsRiddles.csproj", "{8E6D0882-5947-4D6F-912C-1D7ECB8AF695}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{18CA0AB9-FE88-4833-811B-F8C16AD8C2E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18CA0AB9-FE88-4833-811B-F8C16AD8C2E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18CA0AB9-FE88-4833-811B-F8C16AD8C2E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18CA0AB9-FE88-4833-811B-F8C16AD8C2E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E6D0882-5947-4D6F-912C-1D7ECB8AF695}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E6D0882-5947-4D6F-912C-1D7ECB8AF695}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E6D0882-5947-4D6F-912C-1D7ECB8AF695}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E6D0882-5947-4D6F-912C-1D7ECB8AF695}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {449081AE-879C-4E2F-8E2F-01E28F704401}
+	EndGlobalSection
+EndGlobal
