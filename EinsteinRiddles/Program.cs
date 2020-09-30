@@ -19,13 +19,30 @@ namespace EinsteinRiddles
         {
             Console.WriteLine("Hello World!");
             World world = new World();
-            int foundInteractions = world.WorldInMotion(0);
+            int foundInteractions = world.WorldInMotion(0, false);
 
-            if (foundInteractions != world.Table.Count() * (world.Families[0].Items.Count * world.Families[0].Items.Count))
+            Console.WriteLine("********** END OF INITIAL RUN OF THE WORLD **************");
+            int securité = 99;
+            if (foundInteractions != world.TotalNumberOfRelations)
             {
-                world.doDream(foundInteractions);
-            }
+                int chainsToChainForATry = world.searchForNextCompatibleChain(foundInteractions, world.Table, world.Chains, world.FamiliesOrphans, world.DreamNumber, world.DreamName);
 
+                // string popo Helper.Clone(world.Table);
+                /*
+                int returnCode = world.doDream(foundInteractions, Helper.Clone(world.Table), Helper.Clone(world.Chains), Helper.Clone(world.FamiliesOrphans), chainsToChainForATry);
+                if (returnCode == -666)
+                {
+                    // erreur fatale lors de l'hybridation
+
+                }
+                else if (returnCode == -6666)
+                {
+                    // erreur fatale lors du run the world
+                }
+                */
+                //world.doDream(foundInteractions, world.Table, world.Chains, world.FamiliesOrphans);
+            }
+            Console.WriteLine("********** END OF THE MAIN WHILE **************");
             world.PrintAReport();
             Console.WriteLine("END OF PGM");
             Console.ReadLine();
@@ -40,6 +57,10 @@ namespace EinsteinRiddles
         public string Name;
         public List<FamilyRelationship> Table;
         public List<List<string>> Chains;
+        public int TotalNumberOfRelations;
+        public int TotalNumberOfMatches;
+        public string DreamName;
+        public int DreamNumber;
 
         public World()
         {
@@ -52,6 +73,8 @@ namespace EinsteinRiddles
             Families = input.Families;
             Assertions = input.Assertions;
             Name = input.Info;
+            DreamName = "";
+            DreamNumber = 0;
 
             string copy = Helper.Clone<List<Family>>(Families);
             FamiliesOrphans = Helper.ReVive<List<Family>>(copy);
@@ -80,6 +103,8 @@ namespace EinsteinRiddles
                     Table.Add(fr);
                 }
             }
+
+            TotalNumberOfRelations = Table.Count() * (Families[0].Items.Count * Families[0].Items.Count);
             /*
             FamilyRelationships = new 
                 chapeau/Medic
@@ -97,9 +122,20 @@ namespace EinsteinRiddles
             Console.WriteLine("PROBLEM " + Name + " Created.");
         }
 
-        public int WorldInMotion(int numberOfInteractionAlreadyFound)
+        public World(Assertion[] assertions, List<Family> families, List<Family> familiesOrphans, string name, List<FamilyRelationship> table, List<List<string>> chains,  string dreamName)
         {
-            int maxNbrOfItemInteractions = Table.Count() * (Families[0].Items.Count * Families[0].Items.Count);
+            this.Assertions = assertions;
+            this.Families = families;
+            this.FamiliesOrphans = familiesOrphans;
+            this.Name = name;
+            this.Table = table;
+            this.Chains = chains;
+            this.DreamName = dreamName;
+        }
+
+        public int WorldInMotion(int numberOfInteractionAlreadyFound, bool inADream)
+        {
+            int maxNbrOfItemInteractions = TotalNumberOfRelations;
             int changes = 0;
             int rounds = 0;
             while ((changes > 0 || rounds == 0) && rounds < 100 && numberOfInteractionAlreadyFound < maxNbrOfItemInteractions)
@@ -166,130 +202,185 @@ namespace EinsteinRiddles
                 Console.WriteLine("******* Found " + matches + " matches on " + expectedMatches + " expected *********************");
             }
 
-            PrintChains();
+            PrintChains(Chains);
 
             Console.WriteLine("**************** FINAL REPORT *******************************");
             Console.WriteLine("******* Found " + totalNbrOfMatches + " matches on " + TotalExpectedMatches + " expected *********************");
 
         }
 
-        public void PrintChains()
+        public void PrintChains(List<List<string>> chains)
         {
+
+            int items = 0;
             Console.WriteLine("********************** CHAINS *******************************");
-            foreach (var chain in Chains)
+            foreach (var chain in chains)
             {
                 string outputLine = "CHAIN : ";
                 outputLine += printAChain(chain);
                 Console.WriteLine(outputLine);
+                items += chain.Count;
+            }
+
+            if (chains.Count == 6 && items > 25) 
+            {
+                throw new Exception();
             }
         }
 
-        public void doDream(int foundSoFar)
+        //entrer les param de monde cloné ici
+        public int searchForNextCompatibleChain(int foundInteractions, List<FamilyRelationship> table, List<List<string>> chains, List<Family> familiesOrphans, int dreamNumber, string dreamName)
         {
-            Console.WriteLine("||||||||||||| Let's dream in experimental Land |||||||||||||||||");
-            Console.WriteLine("************** CHAINS BEFORE THE DREAM  **************************");
-            PrintChains();
             int maxElementInAChain = Families.Count;
 
             // find one big chain and a smaller one which is compatible.
-            for (int i = 0; i < Chains.Count - 1; i++)
+            for (int i = 0; i < chains.Count - 1; i++)
             {
-                List<string> chain = Chains[i];
+                List<string> chain = chains[i];
                 int missingElements = maxElementInAChain - chain.Count;
-                for (int j = i + 1; j < Chains.Count; j++)
+                for (int j = i + 1; j < chains.Count; j++)
                 {
-                    if (Chains[j].Count <= missingElements)
+                    if (chains[j].Count <= missingElements)
                     {
                         // let's find out if these two chains are compatible
-                        if (areTheyCompatible(Chains[i], Chains[j]))
+                        if (areTheyCompatible(chains[i], chains[j]))
                         {
-                            Console.WriteLine("||||| It could be cool to try to liase CHAIN :" + printAChain(Chains[i]) + " with CHAIN : " + printAChain(Chains[j]));
-
-                            // BACK UPS
-                            string ChainsBackUp = Helper.Clone(Chains);
-                            string TableBackUp = Helper.Clone(Table);
-                            string FamiliesOrphansBackUp = Helper.Clone(FamiliesOrphans);
-
-                            // merge The Chosen Chains
-                            int elementImpacted = 0;
-                            bool HybridationIsBroken = false;
-                            foreach (var addedItem in Chains[j])
+                            dreamNumber++;
+                            dreamName += "-" + dreamNumber;
+                            int returnCode = doDream(foundInteractions, Helper.Clone(table), Helper.Clone(chains), Helper.Clone(familiesOrphans), new int[] { i, j }, dreamName);
+                            if (returnCode == -666)
                             {
-                                //add it to the bigger chain
-                                Chains[i].Add(addedItem);
-
-                                // set the match with every other element of the parent chain
-                                foreach (var item in Chains[i])
-                                {
-                                    if (item != addedItem)
-                                    {
-                                        int returnValue = FindIndexOfFamilyRelationShipAndSetAMatch(item, addedItem);
-                                        if (returnValue < 0)
-                                        {
-                                            // Console.WriteLine("**** Error. this Hybridation does not work");
-                                            HybridationIsBroken = true;
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            elementImpacted += returnValue;
-                                        }
-                                    }
-                                }
-
-                                if (HybridationIsBroken)
-                                {
-                                    Console.WriteLine("**** Error. this Hybridation does not work. Afterfirst bouturing attempt");
-                                    //  Restore
-                                    Chains = Helper.ReVive<List<List<string>>>(ChainsBackUp);
-                                    Table = Helper.ReVive<List<FamilyRelationship>>(TableBackUp);
-                                    FamiliesOrphans = Helper.ReVive<List<Family>>(FamiliesOrphansBackUp);
-                                    Console.WriteLine("**** Chains after BAckup reconstruction");
-                                    PrintChains();
-                                    continue;
-                                }
-                            }
-
-                            // running the world
-                            Chains[j] = new List<string>();
-                            Chains = DoCleanChains(Chains);
-
-                            int returnValue02 = WorldInMotion(foundSoFar);
-
-                            if (returnValue02 < 0 ) // erreur critique de conflit 
-                            {
-                                Console.WriteLine("**** Error. this Hybridation does not work. Critical error after running the world");
-                                HybridationIsBroken = true;
-
-                                //  Restore
-                                Chains = Helper.ReVive<List<List<String>>>(ChainsBackUp);
-                                Table = Helper.ReVive<List<FamilyRelationship>>(TableBackUp);
-                                FamiliesOrphans = Helper.ReVive<List<Family>>(FamiliesOrphansBackUp);
-
-                                Console.WriteLine("**** Chains after Backup reconstruction");
-                                PrintChains();
-
+                                // erreur fatale lors de l'hybridation
+                                dreamName = dreamName.Substring(0, dreamName.LastIndexOf("-"));
                                 continue;
                             }
-                            else if (returnValue02 == foundSoFar) // plus rien ne bouge
+                            else if (returnCode == -6666)
                             {
-                                Console.WriteLine("**** Error. this Hybridation does not work. Plus rien ne bouge");
+                                // erreur fatale lors du run the world
+                                dreamName = dreamName.Substring(0, dreamName.LastIndexOf("-"));
+                                continue;
                             }
-                            else
+                            else if (returnCode == TotalNumberOfRelations)
                             {
-                                Console.WriteLine("We ran the world and reach its end.");
-                                PrintChains();
-                                // TODO : SEARCH FOR ORPHANS
-                                Console.WriteLine("||||| EndOf THe Dream");
+                                // C'est gagné
+                                return TotalNumberOfRelations;
                             }
-
                         }
                         else
                         {
-                            Console.WriteLine("||||| Non Compatible Chains : CHAIN :" + printAChain(Chains[i]) + " do not match with CHAIN : " + printAChain(Chains[j]));
+                            Console.WriteLine("||||| Non compatible Chains CHAIN :" + printAChain(chains[i]) + " with CHAIN : " + printAChain(chains[j]));
                         }
                     }
                 }
+            }
+
+            return -9999;
+        }
+
+        public int doDream(int foundSoFar, string table, string chains, string familiesOrphans, int[] chainsToChain, string dreamName)
+        {
+            Console.WriteLine("||||||||||||| Let's dream in experimental Land |||||||||||||||||");
+
+            World dreamWorld = new World(Assertions, Families, Helper.ReVive<List<Family>>(familiesOrphans), Name, Helper.ReVive<List<FamilyRelationship>>(table), Helper.ReVive<List<List<String>>>(chains), dreamName);
+            
+            Console.WriteLine("************** CHAINS BEFORE THE DREAM " + dreamName + " **************************");
+            PrintChains(dreamWorld.Chains);
+            Console.WriteLine("||||| It could be cool to try to liase CHAIN :" + printAChain(dreamWorld.Chains[chainsToChain[0]]) + " with CHAIN : " + printAChain(dreamWorld.Chains[chainsToChain[1]]));
+
+            int i = chainsToChain[0];
+            int j = chainsToChain[1];
+
+            // BACK UPS
+            string ChainsBackUp = Helper.Clone(dreamWorld.Chains);
+            string TableBackUp = Helper.Clone(dreamWorld.Table);
+            string FamiliesOrphansBackUp = Helper.Clone(dreamWorld.FamiliesOrphans);
+
+            // merge The Chosen Chains
+            int elementImpacted = 0;
+            bool HybridationIsBroken = false;
+            foreach (var addedItem in dreamWorld.Chains[j])
+            {
+                //add it to the bigger chain
+                dreamWorld.Chains[i].Add(addedItem);
+
+                // set the match with every other element of the parent chain
+                foreach (var item in dreamWorld.Chains[i])
+                {
+                    if (item != addedItem)
+                    {
+                        int returnValue = dreamWorld.FindIndexOfFamilyRelationShipAndSetAMatch(item, addedItem);
+                        if (returnValue < 0)
+                        {
+                            // Console.WriteLine("**** Error. this Hybridation does not work");
+                            HybridationIsBroken = true;
+                            break;
+                        }
+                        else
+                        {
+                            elementImpacted += returnValue;
+                        }
+                    }
+                }
+
+                if (HybridationIsBroken)
+                {
+                    Console.WriteLine("**** Error. this Hybridation does not work. After first bouturing attempt in dream " + dreamWorld.DreamName);
+                    return -666;
+                }
+            }
+
+            // running the world
+            dreamWorld.Chains[j] = new List<string>();
+            dreamWorld.Chains = DoCleanChains(dreamWorld.Chains);
+            dreamWorld.Chains = OrderChainsByLength(dreamWorld.Chains);
+
+            foundSoFar += elementImpacted;
+
+            int returnValue02 = WorldInMotion(foundSoFar, true);
+
+            if (returnValue02 == foundSoFar) // plus rien ne bouge
+            {
+                Console.WriteLine("**** Mmmmh. this Hybridation is stuck after running the world. Nothing else happens in dream " + dreamWorld.DreamName);
+                //Console.WriteLine("**** Chains are : ");
+                // PrintChains(dreamWorld.Chains);
+                // call what is the next AttemptTo try ?
+                Console.WriteLine("**** I N C E P T I O N *********************************");
+                returnValue02 = dreamWorld.searchForNextCompatibleChain(returnValue02, dreamWorld.Table, dreamWorld.Chains, dreamWorld.FamiliesOrphans, dreamWorld.DreamNumber, dreamName);
+            }
+            
+            if (returnValue02 < 0 ) // erreur critique de conflit 
+            {
+                Console.WriteLine("**** Error. this Hybridation does not work. Critical error after running the world  in dream " + dreamWorld.DreamName);
+                HybridationIsBroken = true;
+
+                return -6666;
+
+                //  Restore
+                /*
+                Chains = Helper.ReVive<List<List<String>>>(ChainsBackUp);
+                Table = Helper.ReVive<List<FamilyRelationship>>(TableBackUp);
+                FamiliesOrphans = Helper.ReVive<List<Family>>(FamiliesOrphansBackUp);
+
+                Console.WriteLine("**** Chains after Backup reconstruction");
+                PrintChains();
+                */
+
+            }
+            else if (returnValue02 == TotalNumberOfRelations)
+            {
+                Console.WriteLine("**** YYYYEEEEESSSSSS, We found it in dream " + dreamWorld.DreamName + "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+                Console.WriteLine("**** Chains are : ");
+                PrintChains(dreamWorld.Chains);
+                // return returnValue02;
+                throw new Exception("WE FOUND IT. DID WE ?");
+            }
+            else
+            {
+                Console.WriteLine(" ???? We ran the world and reach its end. LOST IN SPACE in dream " + dreamWorld.DreamName);
+                Console.WriteLine("**** Chains are : ");
+                PrintChains(dreamWorld.Chains);
+                Console.WriteLine("||||| EndOf THe Dream");
+                return 0;
             }
         }
 
@@ -746,13 +837,13 @@ namespace EinsteinRiddles
         public List<String> families;
         public List<ItemRelationship> itemRelationships;
         //public ItemRelationship[] itemRelationships;
-        public Boolean locked; // is it usefull ?
+        //public Boolean locked; // is it usefull ?
 
         public FamilyRelationship(string family1, string family2)
         {
             this.families = new List<String> { family1, family2 };
             this.itemRelationships = new List<ItemRelationship>();
-            this.locked = false;
+            //this.locked = false;
         }
     }
 
