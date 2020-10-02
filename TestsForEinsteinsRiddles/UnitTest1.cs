@@ -114,17 +114,17 @@ namespace TestsForEinsteinsRiddles
         {
             this._world.Table[0].families[0] = "Gentil";
             this._world.Table[0].itemRelationships[3].status = status.MATCH;
-            this._world.Chains.Add(new List<string> { "canard", "pipin", "Floti", "Ramon" , "Chazou", "Floti" });
+            this._world.Chains.Add(new List<string> { "canard", "Flamichen", "Floti", "Ramon" , "Chazou", "Floti" });
 
             string ChainsBackUp = Helper.Clone(this._world.Chains);
             string TableBackUp = Helper.Clone(this._world.Table);
 
             this._world.Table[0].itemRelationships[3].status = status.NONE;
-            this._world.Table[0].families[0] = "Pinocul";
+            this._world.Table[0].families[0] = "Minauder";
             this._world.Chains[0].Add("Japon");
             this._world.Chains[0].Add("Turquie");
 
-            Assert.IsTrue(this._world.Table[0].families[0] == "Pinocul");
+            Assert.IsTrue(this._world.Table[0].families[0] == "Minauder");
             Assert.IsTrue(this._world.Chains[0][0] == "canard");
             Assert.IsTrue(this._world.Chains[0][7] == "Turquie");
             Assert.IsTrue(this._world.Chains[0].Count == 8);
@@ -140,5 +140,14 @@ namespace TestsForEinsteinsRiddles
             Assert.IsTrue(this._world.Table[0].itemRelationships[3].status == status.MATCH);
         }
 
+
+        [Test]
+        public void removeLastDreamOfDreamName()
+        {
+            string dreamName01 = "Flamiche-pôpoi-zamzam";
+            Assert.IsTrue(dreamName01.Substring(0, dreamName01.LastIndexOf("-")) == "Flamiche-pôpoi");
+            string dreamName02 = "Flamiche-";
+            Assert.IsTrue(dreamName02.Substring(0, dreamName02.LastIndexOf("-")) == "Flamiche");
+        }
     }
 }
