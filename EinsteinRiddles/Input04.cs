@@ -22,7 +22,7 @@ namespace EinsteinRiddles
                 new Family("Coiffes", new List<String> { "Chapeau de cowboy", "Casquette", "Couronne", "Bonnet de Noël", "Chapeau de sorcière", "Chapeau de diplomé", "Chapeau à plume", "Chapeau de Sherlock"}),
                 new Family("Instruments", new List<String> { "Harpe", "Guitare", "Violon", "Trompette", "Tambourin", "Xylophone", "Flute", "Saxophone" }),
                 new Family("Drapeaux", new List<String> { "Italie", "Suède", "Russie", "Angleterre", "Allemagne", "Etats Unis", "France", "Japon" }),
-                new Family("Metiers", new List<String> { "Renard", "Grenouille", "Elephant", "Chaton", "Chien", "Lapin", "Rat", "Lion" })
+                new Family("Animaux", new List<String> { "Renard", "Grenouille", "Elephant", "Chaton", "Chien", "Lapin", "Rat", "Lion" })
              };
 
             Assertions = new Assertion[] {

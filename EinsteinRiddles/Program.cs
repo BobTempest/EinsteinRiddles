@@ -21,9 +21,15 @@ namespace EinsteinRiddles
             int foundInteractions = world.WorldInMotion(0, false);
 
             Console.WriteLine("********** END OF INITIAL RUN OF THE WORLD **************");
+
+            if (foundInteractions < 0)
+            {
+                throw new Exception("Negtive result after first pass. Something must be wrong in assertions.");
+            }
+
             if (foundInteractions != world.TotalNumberOfRelations)
             {
-                int chainsToChainForATry = world.searchForNextCompatibleChain(foundInteractions, world.Table, world.Chains, world.FamiliesOrphans, world.DreamNumber, world.DreamName);
+                world.searchForNextCompatibleChain(foundInteractions, world.Table, world.Chains, world.FamiliesOrphans, world.DreamNumber, world.DreamName);
             }
             Console.WriteLine("********** END OF THE MAIN WHILE **************");
             world.PrintAReport();
@@ -44,22 +50,27 @@ namespace EinsteinRiddles
         public int TotalNumberOfMatches;
         public string DreamName;
         public int DreamNumber;
+        public bool WorldInADream;
 
         public World()
         {
             // FACILE 408
             Console.WriteLine("Importing Problem....");
 
-            //Input01 input = new Input01();  // 4x4
-             Input02 input = new Input02(); // 6x6
+
+            //TODO: Dans le run 6x6 , on a des lost in space... A gerer
+
+            // Input01 input = new Input01();  // 4x4
+             //Input02 input = new Input02(); // 6x6
             //Input03 input = new Input03();  // 5x5  
-            //Input04 input = new Input04();  // 8x8  
+            Input04 input = new Input04();  // 8x8  
 
             Families = input.Families;
             Assertions = input.Assertions;
             Name = input.Info;
             DreamName = "";
             DreamNumber = 0;
+            WorldInADream = false;
 
 
             string copy = Helper.Clone<List<Family>>(Families);
@@ -117,7 +128,7 @@ namespace EinsteinRiddles
             this.Table = table;
             this.Chains = chains;
             this.DreamName = dreamName;
-
+            this.WorldInADream = true;
             this.TotalNumberOfRelations = Table.Count() * (Families[0].Items.Count * Families[0].Items.Count);
         }
 
@@ -136,11 +147,21 @@ namespace EinsteinRiddles
 
                 int modifications = GoThroughARoundOfAssertions();
                 Console.WriteLine("======== Ran through goThroughARoundOfAssertions. " + modifications + " modifications");
+                if (modifications < 0)
+                {
+                    return modifications;
+                }
+
                 changes += modifications;
 
                 // Search matching relationships Pilot likes billet de 10, Mais likes billet de 10 THEN Pilot likes Mais
                 int modifications02 = SearchForNewChains();
                 Console.WriteLine("======== Ran through SearchForNewChains. " + modifications02 + " modifications");
+                if (modifications02 < 0)
+                {
+                    return modifications02;
+                }
+
                 changes += modifications02;
 
                 // exclude items from non compatible chains
@@ -153,19 +174,29 @@ namespace EinsteinRiddles
                 // treating Unknown : search for a OneLeft Situation
                 int modifications04 = SearchForLastOneStandingSituations();
                 Console.WriteLine("======== Ran through SearchForLastOneStandingSituations. " + modifications04 + " modifications");
+                if (modifications04 < 0)
+                {
+                    
+                    return modifications04;
+                }
+
                 changes += modifications04;
 
                 // looking for orphans in almost complete chains
                 int modifications05 = CanWeAddAnOrphanToAChain();
                 Console.WriteLine("======== Ran through CanWeAddAnOrphanToAChain. " + modifications05 + " modifications");
+                if (modifications05 < 0)
+                {
+                    return modifications05;
+                }
+
                 changes += modifications05;
-
-
 
                 numberOfInteractionAlreadyFound += changes;
                 Console.WriteLine("[][][][][] FINISHING ROUND " + rounds + " WITH " + changes + " CHANGES. And Total interactions are : " + numberOfInteractionAlreadyFound);
             }
 
+            //numberOfInteractionAlreadyFound += changes;
             return numberOfInteractionAlreadyFound;
         }
 
@@ -417,29 +448,29 @@ namespace EinsteinRiddles
 
             foundSoFar += elementImpacted;
 
-            int returnValue02 = dreamWorld.WorldInMotion(foundSoFar, true);
+            int backFromRunningTheWorld = dreamWorld.WorldInMotion(foundSoFar, true);
 
-            if (returnValue02 == TotalNumberOfRelations)
+            if (backFromRunningTheWorld == TotalNumberOfRelations)
             {
                 Console.WriteLine("**** YYYYEEEEESSSSSS, We found it in dream " + dreamWorld.DreamName + "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
                 Console.WriteLine("**** Chains are : ");
                 PrintChains(dreamWorld.Chains);
                 Table = dreamWorld.Table;
                 Chains = dreamWorld.Chains;
-                return returnValue02;
+                return backFromRunningTheWorld;
             }
 
-            if (returnValue02 >= foundSoFar) // plus rien ne bouge
+            if (backFromRunningTheWorld >= foundSoFar) // plus rien ne bouge
             {
                 Console.WriteLine("**** Mmmmh. this Hybridation is stuck after running the world. Nothing else happens in dream " + dreamWorld.DreamName + " Let us call :");
                 Console.WriteLine("**** Chains are : ");
                 PrintChains(dreamWorld.Chains);
                 // call what is the next AttemptTo try ?
                 Console.WriteLine("**** I N C E P T I O N *********************************");
-                returnValue02 = dreamWorld.searchForNextCompatibleChain(returnValue02, dreamWorld.Table, dreamWorld.Chains, dreamWorld.FamiliesOrphans, dreamWorld.DreamNumber, dreamName);
+                backFromRunningTheWorld = dreamWorld.searchForNextCompatibleChain(backFromRunningTheWorld, dreamWorld.Table, dreamWorld.Chains, dreamWorld.FamiliesOrphans, dreamWorld.DreamNumber, dreamName);
             }
             
-            if (returnValue02 < 0 ) // erreur critique de conflit 
+            if (backFromRunningTheWorld < 0 ) // erreur critique de conflit 
             {
                 Console.WriteLine("**** Error. this Hybridation does not work. Critical error after running the world  in dream " + dreamWorld.DreamName);
                 HybridationIsBroken = true;
@@ -690,13 +721,46 @@ namespace EinsteinRiddles
             int elementImpacted = 0;
             bool doCleanPlease = false;
 
-            for (int i = 1; i < Chains.Count; i++)
+            Chains = OrderChainsByLength(Chains);
+            Chains = DoCleanChains(Chains);
+
+            for (int i = 0; i < Chains.Count - 1; i++)
             {
                 // find an orphan Chain
-                if (Chains[i].Count == 2)
+                if (Chains[i].Count >= 2)
                 {
-                    for (int j = i - 1; j >= 0; j--)
+                    for (int j = i + 1; j < Chains.Count; j++)
                     {
+                        var intersect = Chains[i].Intersect(Chains[j]).Any();                       
+                        if (intersect)
+                        {
+                            Console.WriteLine("**** BIG MERGING : Merging " + printAChain(Chains[i]) + " and " + printAChain(Chains[j]));
+                            // Let us merge it !
+                            foreach (var item in Chains[j])
+                            {
+                                if (!Chains[i].Contains(item))
+                                {
+                                    Console.WriteLine("**** Chaining " + item + " To Chain index " + i + " containing " + printAChain(Chains[i]));
+                                    doCleanPlease = true;
+                                    //add it to the bigger chain
+                                    Chains[i].Add(item);
+                                    // remove this orphan chain
+                                    Chains[j] = new List<string>();
+                                    // set the match with every other element of the parent chain
+                                    foreach (var itemInParent in Chains[i])
+                                    {
+                                        if (itemInParent != item)
+                                        {
+                                            elementImpacted += FindIndexOfFamilyRelationShipAndSetAMatch(item, itemInParent);
+                                        }
+                                    }
+                                }
+                            }
+
+                            Chains = DoCleanChains(Chains);
+                        }
+
+                        /*
                         string newItem = String.Empty;
                         string chainingItem = String.Empty;
 
@@ -734,11 +798,11 @@ namespace EinsteinRiddles
                                 }
                             }
                         }
+                        */
                     }
                 }
             }
 
-            var cleanChains = new List<List<string>>();
             if (doCleanPlease)
             {
                 Chains = DoCleanChains(Chains);
@@ -947,8 +1011,12 @@ namespace EinsteinRiddles
             if (locked == true && status != incomingStatus)
             {
                 if (!justToSee)
+                {
                     Console.WriteLine("FATAL ERROR : Trying to set a conflicting relationShip");
+                }
+
                 return -99999999;
+
                 /*
                 throw new ArgumentException("FATAL ERROR : Trying to set a conflicting relationShip. " +
                 "Trying to set relation " + items[0] + "/" + items[1] + " to " + incomingStatus + " But it is locked and set to " + status + " already." );

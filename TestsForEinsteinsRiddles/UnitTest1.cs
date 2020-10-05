@@ -2,6 +2,7 @@ using EinsteinRiddles;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace TestsForEinsteinsRiddles
 {
@@ -31,6 +32,18 @@ namespace TestsForEinsteinsRiddles
             for (int i = 1; i < _world.Families.Count; i++)
             {
                 Assert.IsTrue(NumberOfItemsPerFamily == _world.Families[i].Items.Count, "Family " + _world.Families[i].Name + " has noot a regular number of items");
+            }
+        }
+
+        [Test]
+        public void EachFamilyNameIsDifferent()
+        {
+            List<String> familyNames = new List<string>();
+
+            foreach (var family in _world.Families)
+            {
+                Assert.IsTrue(!familyNames.Contains(family.Name), family.Name + " is not unique in Families as a name.");
+                familyNames.Add(family.Name);
             }
         }
 
@@ -148,6 +161,18 @@ namespace TestsForEinsteinsRiddles
             Assert.IsTrue(dreamName01.Substring(0, dreamName01.LastIndexOf("-")) == "Flamiche-pôpoi");
             string dreamName02 = "Flamiche-";
             Assert.IsTrue(dreamName02.Substring(0, dreamName02.LastIndexOf("-")) == "Flamiche");
+        }
+
+        [Test]
+        public void Intersect()
+        {
+            List<String> list01 = new List<string> { "papa", "maman", "fiston", "fifille"};
+            List<String> list02 = new List<string> { "cluedo", "giron", "zamzam", "flower", "synapse"};
+            List<String> list03 = new List<string> { "cluedo", "maman", "giron", "zamzam", "flower", "synapse", "fiston" };
+
+            Assert.IsFalse(list01.Intersect(list02).Any());
+            Assert.IsTrue(list01.Intersect(list03).Any());
+            Assert.IsTrue(list03.Intersect(list03).Any());
         }
     }
 }
