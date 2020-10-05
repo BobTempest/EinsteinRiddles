@@ -4,17 +4,22 @@ using System.Text;
 
 namespace EinsteinRiddles
 {
-    class Input04
+    public class Input04 : IInputData
     {
-        public Assertion[] Assertions;
-        public List<Family> Families;
-        public String Info;
+        private Assertion[] m_assertions;
+        public Assertion[] Assertions { get { return m_assertions; } }
+
+        private List<Family> m_families;
+        public List<Family> Families { get { return m_families; } }
+
+        private String m_Info;
+        public String Info { get { return m_Info; } }
 
         public Input04()
         {
-            Info = "PROBLEME EXTREME #20 8x8";
+            m_Info = "PROBLEME EXTREME #20 8x8";
 
-            Families = new List<Family> {
+            m_families = new List<Family> {
                 new Family("Sports", new List<String> { "Bowling", "Rugby", "Volley", "Ballet", "Basket", "Football", "BaseBall", "Golf" }),
                 new Family("Nourriture", new List<String> { "Maïs", "Champignon", "Pâtes", "Ananas", "Steak", "Tomate", "Banane", "Fromage" }),
                 new Family("Véhicules", new List<String> { "Train", "Zeppelin", "Hélicoptère", "Sous Marin", "Ambulance", "Voiture", "Camion", "Char" }),
@@ -25,7 +30,7 @@ namespace EinsteinRiddles
                 new Family("Animaux", new List<String> { "Renard", "Grenouille", "Elephant", "Chaton", "Chien", "Lapin", "Rat", "Lion" })
              };
 
-            Assertions = new Assertion[] {
+            m_assertions = new Assertion[] {
                 new Assertion(1, "Ingenieur", "Ballet", false, true),
                 new Assertion(2, "Suède", "Ballet", false, true),
                 new Assertion(3, "BaseBall", "Chapeau de diplomé", true, true),
@@ -115,7 +120,7 @@ namespace EinsteinRiddles
             }
         }
 
-        private string getFamilyNameForItem(string item)
+        public string getFamilyNameForItem(string item)
         {
             foreach (var family in Families)
             {

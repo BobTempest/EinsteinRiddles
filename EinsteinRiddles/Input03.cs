@@ -4,18 +4,23 @@ using System.Text;
 
 namespace EinsteinRiddles
 {
-    class Input03
+    public class Input03 : IInputData
     {
-        public Assertion[] Assertions;
-        public List<Family> Families;
-        public String Info;
+        private Assertion[] m_assertions;
+        public Assertion[] Assertions { get { return m_assertions; } }
+
+        private List<Family> m_families;
+        public List<Family> Families { get { return m_families; } }
+
+        private String m_Info;
+        public String Info { get { return m_Info; } }
 
         public Input03()
         {
             // MOYEN 122 5x5
-            Info = "PROBLEME Moyen #122 5x5";
+            m_Info = "PROBLEME Moyen #122 5x5";
 
-            Families = new List<Family> {
+            m_families = new List<Family> {
                 new Family("Prénoms", new List<String> { "Sarah", "Camille", "Paul", "Ryan", "Florian" }),
                 new Family("Coiffes", new List<String> { "Chapeau", "Casquette", "Casque", "Bonnet", "Chapeau de Sorcière"}),
                 new Family("Météo", new List<String> { "Orage", "Nuage", "Eclipse", "Neige", "Nuit" }),
@@ -23,7 +28,7 @@ namespace EinsteinRiddles
                 new Family("Medecine", new List<String> { "Scalpel", "Microscope", "Pilule", "Attelle", "Poche de sang" })
              };
 
-            Assertions = new Assertion[] {
+            m_assertions = new Assertion[] {
                 new Assertion(1, "Scalpel", "Peintre", false, true),
                 new Assertion(2, "Policier", "Microscope", false, true),
                 new Assertion(3, "Paul", "Neige", true, true),
@@ -61,7 +66,7 @@ namespace EinsteinRiddles
             }
         }
 
-        private string getFamilyNameForItem(string item)
+        public string getFamilyNameForItem(string item)
         {
             foreach (var family in Families)
             {

@@ -4,25 +4,30 @@ using System.Text;
 
 namespace EinsteinRiddles
 {
-    class Input01
+    public class Input01 : IInputData
     {
-        public Assertion[] Assertions;
-        public List<Family> Families;
-        public String Info;
+        private Assertion[] m_assertions;
+        public Assertion[] Assertions { get { return m_assertions; } }
+
+        private List<Family> m_families;
+        public List<Family> Families { get { return m_families; } }
+        
+        private String m_Info;
+        public String Info { get { return m_Info; } }
 
         public Input01()
         {
             // FACILE 408
-            Info = "PROBLEME FACILE #408 4x4 Creating ....";
+            m_Info = "PROBLEME FACILE #408 4x4";
 
-            Families = new List<Family> {
+            m_families = new List<Family> {
                 new Family("Véhicules", new List<String> { "Ambulance", "Voiture", "Camion", "Char" }),
                 new Family("Monnaies", new List<String> { "Billet de 5", "Billet de 10", "Billet de 20", "Billet de 50" }),
                 new Family("Metiers", new List<String> { "Enseignant", "Policier", "Peintre", "Pilote" }),
                 new Family("Nourriture", new List<String> { "Cerises", "Maïs", "Champignon", "Pâtes" })
                 };
 
-            Assertions = new Assertion[] {
+            m_assertions = new Assertion[] {
                 new Assertion(1, "Camion", "Billet de 10", false, true),
                 new Assertion(2, "Camion", "Billet de 20", true, true),
                 new Assertion(3, "Billet de 10", "Peintre", false, true),
@@ -47,11 +52,11 @@ namespace EinsteinRiddles
             for (int i = 0; i < Assertions.Length; i++)
             {
                 Assertions[i].familyOfElementOne = getFamilyNameForItem(Assertions[i].elementOne);
-                Assertions[i].familyOfElementTwo = getFamilyNameForItem(Assertions[i].elementTwo);
+                Assertions[i].familyOfElementTwo = this.getFamilyNameForItem(Assertions[i].elementTwo);
             }
         }
 
-        private string getFamilyNameForItem(string item)
+        public string getFamilyNameForItem(string item)
         {
             foreach (var family in Families)
             {

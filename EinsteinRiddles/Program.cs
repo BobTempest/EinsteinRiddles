@@ -5,19 +5,25 @@ using System.Linq;
 
 namespace EinsteinRiddles
 {
-     /*
-      *     WHAT to do Next :  input files 
-      *                        push to higher limits 
-      *                        Test with irregular inputs
-      *                        
-      */
+    /*
+     *     WHAT to do Next :  input files 
+     *                        push to higher limits 
+     *                        Test with irregular inputs
+     *                        
+     */
+
+    //Input01 input = new Input01();  // 4x4
+    //Input03 input = new Input03();  // 5x5 
+    //Input02 input = new Input02(); // 6x6
+    //Input04 input = new Input04();  // 8x8  
+
 
     class Program
     {
         static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            World world = new World();
+            World world = new World(new Input01());
             int foundInteractions = world.WorldInMotion(0, false);
 
             Console.WriteLine("********** END OF INITIAL RUN OF THE WORLD **************");
@@ -52,18 +58,12 @@ namespace EinsteinRiddles
         public int DreamNumber;
         public bool WorldInADream;
 
-        public World()
+        public World(IInputData inputData)
         {
             // FACILE 408
             Console.WriteLine("Importing Problem....");
 
-
-            //TODO: Dans le run 6x6 , on a des lost in space... A gerer
-
-            // Input01 input = new Input01();  // 4x4
-             //Input02 input = new Input02(); // 6x6
-            //Input03 input = new Input03();  // 5x5  
-            Input04 input = new Input04();  // 8x8  
+            IInputData input = inputData;
 
             Families = input.Families;
             Assertions = input.Assertions;
@@ -93,7 +93,7 @@ namespace EinsteinRiddles
                         foreach (var item02 in Families[j].Items)
                         {
                             var ir = new ItemRelationship(new List<String> { item01, item02 });
-                            ir.families = new List<string> { GetFamilyNameForItem(item01), GetFamilyNameForItem(item02)};
+                            ir.families = new List<string> { GetFamilyNameForItem(item01), GetFamilyNameForItem(item02) };
                             fr.itemRelationships.Add(ir);
                         }
                     }
@@ -119,7 +119,7 @@ namespace EinsteinRiddles
             Console.WriteLine("PROBLEM " + Name + " Created.");
         }
 
-        public World(Assertion[] assertions, List<Family> families, List<Family> familiesOrphans, string name, List<FamilyRelationship> table, List<List<string>> chains,  string dreamName)
+        public World(Assertion[] assertions, List<Family> families, List<Family> familiesOrphans, string name, List<FamilyRelationship> table, List<List<string>> chains, string dreamName)
         {
             this.Assertions = assertions;
             this.Families = families;
@@ -135,12 +135,12 @@ namespace EinsteinRiddles
         public int WorldInMotion(int numberOfInteractionAlreadyFound, bool inADream)
         {
             Console.WriteLine("WORLDINMOTION");
-    
+
             int maxNbrOfItemInteractions = TotalNumberOfRelations;
             int changes = 0;
             int rounds = 0;
             while ((changes > 0 || rounds == 0) && rounds < 20 && numberOfInteractionAlreadyFound < maxNbrOfItemInteractions)
-            {            
+            {
                 rounds++;
                 changes = 0;
                 Console.WriteLine("[][][][][] STARTING ROUND " + rounds + ".");
@@ -165,18 +165,18 @@ namespace EinsteinRiddles
                 changes += modifications02;
 
                 // exclude items from non compatible chains
-               /*
+                
                 int modifications03 = ExcludeItemsFromNonCompatibleChains();
                 Console.WriteLine("======== Ran through ExcludeItemsFromNonCompatibleChains. " + modifications03 + " modifications");
                 changes += modifications03;
-                */
+                
 
                 // treating Unknown : search for a OneLeft Situation
                 int modifications04 = SearchForLastOneStandingSituations();
                 Console.WriteLine("======== Ran through SearchForLastOneStandingSituations. " + modifications04 + " modifications");
                 if (modifications04 < 0)
                 {
-                    
+
                     return modifications04;
                 }
 
@@ -212,7 +212,7 @@ namespace EinsteinRiddles
             {
                 int matches = 0;
                 int expectedMatches = Families[0].Items.Count;
-                Console.WriteLine("*******" + familyRelationship .families[0] + " & " + familyRelationship.families[1] + " *********************");
+                Console.WriteLine("*******" + familyRelationship.families[0] + " & " + familyRelationship.families[1] + " *********************");
                 foreach (var ItemRelationship in familyRelationship.itemRelationships)
                 {
                     if (ItemRelationship.status == status.MATCH)
@@ -264,36 +264,33 @@ namespace EinsteinRiddles
                 int missingElements = maxElementInAChain - chain.Count;
                 for (int j = i + 1; j < chains.Count; j++)
                 {
-                    if (chains[j].Count <= missingElements)
+                    // let's find out if these two chains are compatible
+                    if (AreTheseChainsCompatible(chains[i], chains[j], maxElementInAChain))
                     {
-                        // let's find out if these two chains are compatible
-                        if (areTheyCompatible(chains[i], chains[j]))
+                        dreamNumber++;
+                        dreamName += "-" + dreamNumber;
+                        int returnCode = doDream(foundInteractions, Helper.Clone(table), Helper.Clone(chains), Helper.Clone(familiesOrphans), new int[] { i, j }, dreamName);
+                        if (returnCode == -666)
                         {
-                            dreamNumber++;
-                            dreamName += "-" + dreamNumber;
-                            int returnCode = doDream(foundInteractions, Helper.Clone(table), Helper.Clone(chains), Helper.Clone(familiesOrphans), new int[] { i, j }, dreamName);
-                            if (returnCode == -666)
-                            {
-                                // erreur fatale lors de l'hybridation
-                                dreamName = dreamName.Substring(0, dreamName.LastIndexOf("-"));
-                                continue;
-                            }
-                            else if (returnCode == -6666)
-                            {
-                                // erreur fatale lors du run the world
-                                dreamName = dreamName.Substring(0, dreamName.LastIndexOf("-"));
-                                continue;
-                            }
-                            else if (returnCode == TotalNumberOfRelations)
-                            {
-                                // C'est gagné
-                                return TotalNumberOfRelations;
-                            }
+                            // erreur fatale lors de l'hybridation
+                            dreamName = dreamName.Substring(0, dreamName.LastIndexOf("-"));
+                            continue;
                         }
-                        else
+                        else if (returnCode == -6666)
                         {
-                            Console.WriteLine("||||| Non compatible Chains CHAIN :" + printAChain(chains[i]) + " with CHAIN : " + printAChain(chains[j]));
+                            // erreur fatale lors du run the world
+                            dreamName = dreamName.Substring(0, dreamName.LastIndexOf("-"));
+                            continue;
                         }
+                        else if (returnCode == TotalNumberOfRelations)
+                        {
+                            // C'est gagné
+                            return TotalNumberOfRelations;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("||||| Non compatible Chains CHAIN :" + printAChain(chains[i]) + " with CHAIN : " + printAChain(chains[j]));
                     }
                 }
                 if (HAND_CONTROLLED)
@@ -310,37 +307,23 @@ namespace EinsteinRiddles
             int maxElementInAChain = Families.Count;
             int impactedElements = 0;
 
-                // find one big chain and a smaller one which is not compatible.
-                for (int i = 0; i < Chains.Count - 1; i++)
+            // find one big chain and a smaller one which is not compatible.
+            for (int i = 0; i < Chains.Count - 1; i++)
+            {
+                for (int j = i + 1; j < Chains.Count; j++)
                 {
-                    int missingElements = maxElementInAChain - Chains[i].Count;
-                    for (int j = i + 1; j < Chains.Count; j++)
+                    if (!AreTheseChainsCompatible(Chains[i], Chains[j], maxElementInAChain))
                     {
-                        if (Chains[j].Count != Chains[i].Count)
-                        {
-                            if (Chains[j].Count > missingElements)
-                            {
-                                impactedElements += ExcludeChains(Chains[i], Chains[j]);
-                            }
-                            else
-                            {
-                                // let's find out if these two chains are compatible
-                                if (!areTheyCompatible(Chains[i], Chains[j]))
-                                {
-                                    impactedElements += ExcludeChains(Chains[i], Chains[j]);
-                                }
-                            }
-                        }
+                        impactedElements += ExcludeChains(Chains[i], Chains[j]);
                     }
                 }
+            }
             
-
             return impactedElements;
         }
 
         public int ExcludeChains(List<String> chainOne, List<String> chainTwo)
         {
-        //DOES NOT WORK !
             int elementImpacted = 0;
             foreach (var itemOne in chainOne)
             {
@@ -385,7 +368,7 @@ namespace EinsteinRiddles
                     }
                 }
             }
-            Console.WriteLine(elementImpacted + " element impacted when excluding chains");
+            //Console.WriteLine(elementImpacted + " element impacted when excluding chains");
             return elementImpacted;
         }
 
@@ -946,8 +929,19 @@ namespace EinsteinRiddles
             }
         }
 
-        public bool areTheyCompatible(List<String> chainOne, List<string> chainTwo)
+        public bool AreTheseChainsCompatible(List<String> chainOne, List<string> chainTwo, int maxElementsInAChain)
         {
+            if (chainOne.Intersect(chainTwo).Any())
+            {
+                return true;
+            }
+
+            int missingElementsInFirstChain = maxElementsInAChain - chainOne.Count;
+            if (missingElementsInFirstChain < chainTwo.Count)
+            {
+                return false;
+            }
+
             List<String> FamiliesInChainOne = new List<string>();
             foreach (var item in chainOne)
             {

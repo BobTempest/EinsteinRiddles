@@ -13,7 +13,7 @@ namespace TestsForEinsteinsRiddles
         [SetUp]
         public void Setup()
         {
-            _world = new World();
+            _world = new World(new Input03());
         }
 
         [Test]
